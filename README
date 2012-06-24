@@ -1,0 +1,22 @@
+Japanese TV Standard "ARIB STD-B25" implementation without B-CAS Card
+You can use this code for your TV product.
+
+In addition:
+If you have plan to design TV hardware product, you can embed bcasid.inf into firmware, because bcasid.inf is fixed value.
+
+Usage:
+
+cd bcasid
+make
+./bcasid >/etc/bcasid.inf
+
+cd ../libecmdecoder
+make
+make install
+
+cd ../softarib25
+make
+make install
+
+Have fun! 
+I expect succsess of your business in Japan.
