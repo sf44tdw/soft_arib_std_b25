@@ -7,8 +7,11 @@ If you have plan to design TV hardware product, you can embed bcasid.inf into fi
 Usage:
 
 Install the PC/SC development headers and library required by `bcasid` first.
-On AlmaLinux: `sudo dnf install pcsc-lite-devel`. On Debian or Ubuntu:
-`sudo apt install libpcsclite-dev`.
+On AlmaLinux: 
+(On AlmaLinux8 only:`sudo dnf config-manager --enable powertools`)
+`sudo dnf install pcsc-lite-devel`.
+
+On Debian or Ubuntu:`sudo apt install libpcsclite-dev`.
 
 Running `bcasid` additionally requires the PC/SC daemon (pcscd), a smart card
 reader driver, and a B-CAS card inserted in a connected reader.
