@@ -1,14 +1,15 @@
 PREFIX ?= /usr/local
-BUILD_DIR := build
+BUILD_DIR ?= build
 BCASID_INFO ?= /etc/bcasid.inf
 PCSC_CFLAGS ?= $(shell pkg-config --cflags libpcsclite 2>/dev/null)
 PCSC_LIBS ?= $(shell pkg-config --libs libpcsclite 2>/dev/null || printf '%s' '-lpcsclite')
 
-BCASID := bcasid/bcasid
+BCASID := $(BUILD_DIR)/bcasid
 ECMDECODER := $(BUILD_DIR)/libecmdecoder.so
 ARIB25_DIR := softarib25/src
-ARIB25_APP := $(ARIB25_DIR)/b25
-ARIB25_LIB := $(ARIB25_DIR)/libarib25.so
+ARIB25_BUILD_DIR := $(abspath $(BUILD_DIR))/softarib25
+ARIB25_APP := $(ARIB25_BUILD_DIR)/b25
+ARIB25_LIB := $(ARIB25_BUILD_DIR)/libarib25.so
 
 BCASID_SOURCES := bcasid/bcasid.c bcasid/b_cas_card.c
 ECMDECODER_SOURCES := \
@@ -22,6 +23,7 @@ ECMDECODER_SOURCES := \
 all: $(BCASID) $(ECMDECODER) $(ARIB25_APP) $(ARIB25_LIB)
 
 $(BCASID): $(BCASID_SOURCES) bcasid/b_cas_card.h bcasid/portable.h
+	mkdir -p $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) $(PCSC_CFLAGS) $(CFLAGS) -o $@ $(BCASID_SOURCES) $(PCSC_LIBS)
 
 $(ECMDECODER): $(ECMDECODER_SOURCES) $(wildcard libecmdecoder/*.h)
@@ -31,7 +33,8 @@ $(ECMDECODER): $(ECMDECODER_SOURCES) $(wildcard libecmdecoder/*.h)
 softarib25: $(ECMDECODER)
 	$(MAKE) -C $(ARIB25_DIR) \
 		CPPFLAGS="-I$(abspath .) -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -I/usr/local/include" \
-		LDFLAGS="-L$(abspath $(BUILD_DIR))"
+		LDFLAGS="-L$(abspath $(BUILD_DIR))" \
+		BUILD_DIR="$(ARIB25_BUILD_DIR)"
 
 $(ARIB25_APP) $(ARIB25_LIB): softarib25
 
@@ -41,8 +44,7 @@ bcasid-inf: $(BCASID)
 install: all
 	mkdir -p $(PREFIX)/bin $(PREFIX)/lib
 	install -m755 $(ECMDECODER) $(PREFIX)/lib/libecmdecoder.so
-	$(MAKE) -C $(ARIB25_DIR) install PREFIX=$(PREFIX)
+	$(MAKE) -C $(ARIB25_DIR) install PREFIX=$(PREFIX) BUILD_DIR="$(ARIB25_BUILD_DIR)"
 
 clean:
-	rm -f $(BCASID) $(ECMDECODER)
-	$(MAKE) -C $(ARIB25_DIR) clean
+	rm -rf $(BUILD_DIR)

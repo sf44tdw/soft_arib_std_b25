@@ -15,38 +15,47 @@ CXXFLAGS = -O2 -g -fPIC
 LIBS = -lm -lecmdecoder
 LDFLAGS ?= -L /usr/local/lib/
 
-OBJS  = arib_std_b25.o b_cas_card.o multi2.o ts_section_parser.o
+# All build outputs go here so they can be ignored by git
+BUILD_DIR ?= build
+
+OBJS  = $(addprefix $(BUILD_DIR)/,arib_std_b25.o b_cas_card.o multi2.o ts_section_parser.o)
+TD_OBJ = $(BUILD_DIR)/td.o
 HEADERS = arib_std_b25.h b_cas_card.h portable.h
-TARGET_APP = b25
-TARGET_LIB = libarib25.so
+TARGET_APP = $(BUILD_DIR)/b25
+LIB_NAME = libarib25.so
+TARGET_LIB = $(BUILD_DIR)/$(LIB_NAME)
 TARGETS = $(TARGET_APP) $(TARGET_LIB)
-DEPEND = Makefile.dep
-SONAME = $(TARGET_LIB).$(MAJOR)
+SONAME = $(LIB_NAME).$(MAJOR)
 
 all: $(TARGETS)
 
 clean:
-	rm -f $(OBJS) td.o $(TARGETS) $(DEPEND)
+	rm -rf $(BUILD_DIR)
 
-$(TARGET_APP): $(OBJS) td.o
-	$(CXX) $(LDFLAGS) -o $(TARGET_APP) $(OBJS) td.o $(LIBS)
+$(BUILD_DIR):
+	mkdir -p $@
+
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -c -o $@ $<
+
+$(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -c -o $@ $<
+
+$(TARGET_APP): $(OBJS) $(TD_OBJ)
+	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(TD_OBJ) $(LIBS)
 
 $(TARGET_LIB): $(OBJS)
-	$(CXX) $(LDFLAGS) -shared -o $(TARGET_LIB) $(OBJS) $(LIBS) -Wl,-soname,$(SONAME)
+	$(CXX) $(LDFLAGS) -shared -o $@ $(OBJS) $(LIBS) -Wl,-soname,$(SONAME)
 
-$(DEPEND):
-	$(CC) -MM arib_std_b25.c multi2.c ts_section_parser.c $(CPPFLAGS) > $@
-	$(CXX) -MM b_cas_card.cpp $(CPPFLAGS) >> $@
-
-install: $(TARGET) install-headers
-	install -m755 b25 $(PREFIX)/bin
-	install -m755 $(TARGET_LIB) $(PREFIX)/lib/$(TARGET_LIB).$(VER)
-	ln -sf $(PREFIX)/lib/$(TARGET_LIB).$(VER) $(PREFIX)/lib/$(TARGET_LIB).$(MAJOR)
-	ln -sf $(PREFIX)/lib/$(TARGET_LIB).$(MAJOR) $(PREFIX)/lib/$(TARGET_LIB)
+install: $(TARGETS) install-headers
+	install -m755 $(TARGET_APP) $(PREFIX)/bin
+	install -m755 $(TARGET_LIB) $(PREFIX)/lib/$(LIB_NAME).$(VER)
+	ln -sf $(PREFIX)/lib/$(LIB_NAME).$(VER) $(PREFIX)/lib/$(LIB_NAME).$(MAJOR)
+	ln -sf $(PREFIX)/lib/$(LIB_NAME).$(MAJOR) $(PREFIX)/lib/$(LIB_NAME)
 	ldconfig
 
 install-headers:
 	mkdir -p $(DEST_HEADER)
 	install -m644 $(HEADERS) $(DEST_HEADER)
 
--include $(DEPEND)
+-include $(OBJS:.o=.d) $(TD_OBJ:.o=.d)
