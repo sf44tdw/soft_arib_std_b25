@@ -35,7 +35,8 @@ $(TARGET_LIB): $(OBJS)
 	$(CXX) $(LDFLAGS) -shared -o $(TARGET_LIB) $(OBJS) $(LIBS) -Wl,-soname,$(SONAME)
 
 $(DEPEND):
-	$(CC) -MM $(OBJS:.o=.c) $(CPPFLAGS) > $@
+	$(CC) -MM arib_std_b25.c multi2.c ts_section_parser.c $(CPPFLAGS) > $@
+	$(CXX) -MM b_cas_card.cpp $(CPPFLAGS) >> $@
 
 install: $(TARGET) install-headers
 	install -m755 b25 $(PREFIX)/bin

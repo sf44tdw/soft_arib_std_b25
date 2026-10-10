@@ -6,17 +6,20 @@ If you have plan to design TV hardware product, you can embed bcasid.inf into fi
 
 Usage:
 
-cd bcasid
-make
-./bcasid >/etc/bcasid.inf
+Install the PC/SC development headers and library required by `bcasid` first.
+On AlmaLinux: `sudo dnf install pcsc-lite-devel`. On Debian or Ubuntu:
+`sudo apt install libpcsclite-dev`.
 
-cd ../libecmdecoder
 make
-make install
+sudo make install
 
-cd ../softarib25
-make
-make install
+To generate `/etc/bcasid.inf` from a connected B-CAS card, run:
+
+sudo make bcasid-inf
+
+Set `BCASID_INFO=/path/to/file` to write the generated information to a
+different path. Set `PREFIX=/path/to/prefix` to install somewhere other than
+`/usr/local`.
 
 Have fun! 
 I expect succsess of your business in Japan.
