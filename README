@@ -30,5 +30,26 @@ Set `BCASID_INFO=/path/to/file` to write the generated information to a
 different path. Set `PREFIX=/path/to/prefix` to install somewhere other than
 `/usr/local`.
 
+Building RPM packages:
+
+`soft_arib_std_b25.spec` builds one source RPM and two binary RPMs
+(`bcasid` and `softarib25`). Install the build tools first.
+On AlmaLinux: `sudo dnf install rpm-build gcc gcc-c++ make pcsc-lite-devel`.
+
+mkdir -p ~/rpmbuild/SOURCES
+git archive --format=tar.gz --prefix=soft_arib_std_b25-0.2.5/ \
+    -o ~/rpmbuild/SOURCES/soft_arib_std_b25-0.2.5.tar.gz HEAD
+rpmbuild -ba soft_arib_std_b25.spec
+
+The packages are written to `~/rpmbuild/RPMS/<arch>/` and the source RPM to
+`~/rpmbuild/SRPMS/`. Only committed files are included in the tarball.
+Install them with, for example:
+
+sudo dnf install ~/rpmbuild/RPMS/x86_64/bcasid-0.2.5-1*.rpm \
+    ~/rpmbuild/RPMS/x86_64/softarib25-0.2.5-1*.rpm
+
+`softarib25` installs `b25`, `libarib25.so*`, `libecmdecoder.so` and the
+headers under `/usr/include/arib25/`. `bcasid` installs the `bcasid` command.
+
 Have fun! 
 I expect succsess of your business in Japan.
