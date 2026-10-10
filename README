@@ -10,6 +10,15 @@ Install the PC/SC development headers and library required by `bcasid` first.
 On AlmaLinux: `sudo dnf install pcsc-lite-devel`. On Debian or Ubuntu:
 `sudo apt install libpcsclite-dev`.
 
+Running `bcasid` additionally requires the PC/SC daemon (pcscd), a smart card
+reader driver, and a B-CAS card inserted in a connected reader.
+On AlmaLinux:
+
+sudo dnf install pcsc-lite pcsc-lite-ccid
+sudo systemctl enable --now pcscd.socket
+
+On Debian or Ubuntu: `sudo apt install pcscd`.
+
 make
 sudo make install
 
